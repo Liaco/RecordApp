@@ -1,3 +1,4 @@
 Output/
 .test/
 *.xlsx
+__pycache__/    
