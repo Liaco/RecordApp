@@ -2,3 +2,4 @@ Output/
 .test/
 *.xlsx
 __pycache__/    
+conf/
