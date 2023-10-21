@@ -7,6 +7,7 @@
     处理Excel文件(生成图片)
  '''
 import os
+
 import pandas as pd
 import xlwings as xw
 
@@ -81,14 +82,14 @@ def progress(workbook, base_path):
     address_list = ['U2:V50', 'X2:Y50']
     sort(address_list, 0, 1)
 
-    to_png('A1', './Output/Pic/澳门总（序号）.png')
-    to_png('K1', './Output/Pic/香港总（序号）.png')
-    to_png('U1', './Output/Pic/澳门局部（序号）.png')
-    to_png('X1', './Output/Pic/香港局部（序号）.png')
-    to_png('A55', './Output/Pic/澳门总（收入）.png')
-    to_png('K55', './Output/Pic/香港总（收入）.png')
-    to_png('U55', './Output/Pic/澳门局部（收入）.png')
-    to_png('X55', './Output/Pic/香港局部（收入）.png')
+    to_png('A1', f'{os.path.join(base_path,"Output/Pic/澳门总（序号）.png")}')
+    to_png('K1', f'{os.path.join(base_path,"Output/Pic/香港总（序号）.png")}')
+    to_png('U1', f'{os.path.join(base_path,"Output/Pic/澳门局部（序号）.png")}')
+    to_png('X1', f'{os.path.join(base_path,"Output/Pic/香港局部（序号）.png")}')
+    to_png('A55', f'{os.path.join(base_path,"Output/Pic/澳门总（收入）.png")}')
+    to_png('K55', f'{os.path.join(base_path,"Output/Pic/香港总（收入）.png")}')
+    to_png('U55', f'{os.path.join(base_path,"Output/Pic/澳门局部（收入）.png")}')
+    to_png('X55', f'{os.path.join(base_path,"Output/Pic/香港局部（收入）.png")}')
 
 
 if __name__ == '__main__':

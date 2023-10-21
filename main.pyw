@@ -4,9 +4,9 @@ import os
 import re
 import subprocess
 
-import requests
 import xlwings as xw
 from PyQt6.QtCore import QEvent, Qt
+from PyQt6.QtGui import QMovie
 from PyQt6.QtWidgets import (QApplication, QFileDialog, QLabel, QMainWindow,
                              QMessageBox, QVBoxLayout, QWidget)
 
@@ -17,23 +17,19 @@ from src.sentence_slice import sentence_slice
 
 
 class BusyProgress(QWidget):
-    def __init__(self, main_window):
+    def __init__(self):
         super().__init__()
-        pq = QLabel(self)
-        pq.setText(f"{self.getTody()}")
-        self.setWindowTitle('Loading...')
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(pq)
-        self.main_window = main_window
-        self.setGeometry(80, 80, 50, 50)
+        label = QLabel(self)
+        movie = QMovie('./asset/Vp3R.gif')
+        label.setMovie(movie)
+        movie.start()
+        self.setFixedSize(200, 200)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.show()
 
-    def getTody(self):
-        try:
-            response = requests.get("https://jkapi.com/api/wanan")
-            return response.text
-        except:
-            return 'Good Night'
+    def close(self) -> bool:
+        return super().close()
 
 
 class InputWin(QWidget):
@@ -99,7 +95,7 @@ class InputWin(QWidget):
             settings.write(configfile)
 
 
-class ChatApp(QMainWindow):
+class AutoRecord(QMainWindow):
     dist_dir = os.path.dirname(os.path.abspath(__file__))
 
     def __init__(self, size, save_path) -> None:
@@ -143,8 +139,10 @@ class ChatApp(QMainWindow):
                     self.ui.listWidget.addItem(message)
                     scroll_bar = self.ui.listWidget.verticalScrollBar()
                     scroll_bar.setValue(scroll_bar.maximum())
+                    QApplication.processEvents()
                 else:
                     QMessageBox.warning(self, 'Warning', 'No num to record')
+            self.check_button(state=True)
         except Exception as e:
             QMessageBox.warning(self, 'Warning', f'{e}')
 
@@ -160,7 +158,7 @@ class ChatApp(QMainWindow):
     def new_menu(self):
         try:
             self.current_date = datetime.datetime.now().strftime('%m%d')
-            self.file_name = f"./Output/Tables/统计表_{self.current_date}1.xlsx"
+            self.file_name = f"./Output/Tables/统计表_{self.current_date}2.xlsx"
             self.app = xw.App(visible=True, add_book=False)
             self.workbook = self.app.books.open(
                 os.path.join(self.dist_dir, 'asset', 'templet.xlsx'))
@@ -220,25 +218,30 @@ class ChatApp(QMainWindow):
                 self, 'Warning', 'Please select a path to save')
             self.sele_save_path()
             return
-        self.ui.Done.setDisabled(True)  # 禁用按钮以防止多次点击
-        # self.sub = BusyProgress(self)
-        # self.hide()
+        self.setEnabled(False)
+        # self.sub = BusyProgress()
+        self.show()
+        QApplication.processEvents()
         try:
-            RecordData('0', self.workbook, self.file_name).end(self.save_path)
+            path = os.path.join(self.dist_dir, "Output", "Pic")
+            RecordData('0', self.workbook, self.file_name).end(self.dist_dir)
             self.finished()
-            subprocess.call(["open", './Output/Pic'])
-        # except error as e:
-        #     QMessageBox.critical(self, 'Error', f'{e}')
+            if os.name == 'posix':
+                subprocess.call(["open", path])
+
+            elif os.name == 'nt':
+                subprocess.call(["explorer", path], shell=True)
+
         except Exception as e:
             QMessageBox.warning(self, 'Warning', f"{e}")
-        # self.worker_thread = WorkerThread(self.workbook, self.file_name)
-        # self.worker_thread.finished.connect(self.async_task_finished)
-        # self.worker_thread.start()
+            self.setEnabled(True)
+            # self.sub.close()
+            QApplication.processEvents()
 
     def finished(self):
-        self.ui.Done.setDisabled(False)  # 启用按钮
+        self.setEnabled(True)
         # self.sub.close()
-        # self.show()
+        QApplication.processEvents()
 
     def closeEvent(self, event):
         reply = QMessageBox.question(
@@ -299,16 +302,16 @@ class ChatApp(QMainWindow):
                 return
             self.ui.listWidget.takeItem(self.ui.listWidget.row(item))
 
-    def check_button(self):
+    def check_button(self, state=None):
         items = [self.ui.listWidget.item(i).text()
                  for i in range(self.ui.listWidget.count())]
         if not items:
             QMessageBox.information(self, 'Info', 'No recoder')
+            return
         del_items = [i for i, item in enumerate(items) if "无法录入" in item]
-        # print(items)
-        # print(del_items)
         if not del_items:
-            QMessageBox.information(self, 'Info', 'No failed recoder')
+            if not state:
+                QMessageBox.information(self, 'Info', 'No failed recoder')
             return
         for item in del_items[::-1]:
             x = self.ui.listWidget.takeItem(item)
@@ -337,9 +340,9 @@ if __name__ == '__main__':
         height = int(window_settings['height'])
         size = eval(window_settings['size'])
         save_path = window_settings['save_path']
-        win = ChatApp(size, save_path)
+        win = AutoRecord(size, save_path)
         win.setGeometry(x, y, width, height)
     else:
-        win = ChatApp([300, 120], None)
+        win = AutoRecord([300, 120], None)
     win.show()
     app.exec()

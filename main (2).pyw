@@ -7,13 +7,38 @@ import subprocess
 import requests
 import xlwings as xw
 from PyQt6.QtCore import QEvent, Qt
-from PyQt6.QtWidgets import (QApplication, QFileDialog, QLabel, QMainWindow,
-                             QMessageBox, QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (QApplication, QFileDialog, QLabel, QLineEdit,
+                             QMainWindow, QMessageBox, QVBoxLayout, QWidget)
 
 import src.input_ui
+import src.login_ui
 import src.main1_ui
 from src.auto_record import RecordData
 from src.sentence_slice import sentence_slice
+
+
+class LoginUi(QWidget):
+    def __init__(self, mainwin):
+        self.ui = src.login_ui.Ui_Form()
+        super().__init__()
+        self.mainwin = mainwin
+        self.ui.setupUi(self)
+        self.ui.pw.setEchoMode(QLineEdit.EchoMode.Password)
+        self.ui.close.clicked.connect(self.close)
+        self.ui.Login.clicked.connect(self.login)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+
+    def login(self):
+        user = self.ui.usr.text().upper()
+        pw = self.ui.pw.text().upper()
+        if not user or not pw:
+            return
+        if user == 'PW' and pw == 'ILIKELIKE':
+            self.close()
+            self.mainwin.show()
+        else:
+            QMessageBox.information(self, 'Info', 'Wrong password.')
 
 
 class BusyProgress(QWidget):
@@ -25,7 +50,7 @@ class BusyProgress(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(pq)
         self.main_window = main_window
-        self.setGeometry(80, 80, 50, 50)
+        # self.setGeometry(80, 80, 50, 50)
         self.show()
 
     def getTody(self):
@@ -102,7 +127,7 @@ class InputWin(QWidget):
 class ChatApp(QMainWindow):
     dist_dir = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, size, save_path) -> None:
+    def __init__(self, size, save_path,x,y, width, height) -> None:
         super().__init__()
         self.ui = src.main1_ui.Ui_AutoRecord()
         self.ui.setupUi(self, size, self.dist_dir)
@@ -121,7 +146,9 @@ class ChatApp(QMainWindow):
         self.status_bar.showMessage('Not Readly')
         self.index = 0
         self.save_path = save_path
-        self.show()
+        self.login = LoginUi(self)
+        self.setGeometry(x, y, width, height)
+        self.login.show()
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.KeyPress and obj is self.ui.textEdit:
@@ -144,6 +171,7 @@ class ChatApp(QMainWindow):
                     self.ui.listWidget.addItem(message)
                     scroll_bar = self.ui.listWidget.verticalScrollBar()
                     scroll_bar.setValue(scroll_bar.maximum())
+                    QApplication.processEvents()
                 else:
                     QMessageBox.warning(self, 'Warning', 'No num to record')
         except Exception as e:
@@ -161,7 +189,7 @@ class ChatApp(QMainWindow):
     def new_menu(self):
         try:
             self.current_date = datetime.datetime.now().strftime('%m%d')
-            self.file_name = f"./Output/Tables/统计表_{self.current_date}1.xlsx"
+            self.file_name = f"./Output/Tables/统计表_{self.current_date}.xlsx"
             self.app = xw.App(visible=True, add_book=False)
             self.workbook = self.app.books.open(
                 os.path.join(self.dist_dir, 'asset', 'templet.xlsx'))
@@ -221,9 +249,10 @@ class ChatApp(QMainWindow):
                 self, 'Warning', 'Please select a path to save')
             self.sele_save_path()
             return
-        self.ui.Done.setDisabled(True)  # 禁用按钮以防止多次点击
-        # self.sub = BusyProgress(self)
-        # self.hide()
+        # self.ui.Done.setDisabled(True)  # 禁用按钮以防止多次点击
+        self.sub = BusyProgress(self)
+        self.hide()
+        QApplication.processEvents()
         try:
             RecordData('0', self.workbook, self.file_name).end(self.save_path)
             self.finished()
@@ -237,9 +266,10 @@ class ChatApp(QMainWindow):
         # self.worker_thread.start()
 
     def finished(self):
-        self.ui.Done.setDisabled(False)  # 启用按钮
-        # self.sub.close()
-        # self.show()
+        # self.ui.Done.setDisabled(False)  # 启用按钮
+        self.sub.close()
+        self.show()
+        QApplication.processEvents()
 
     def closeEvent(self, event):
         reply = QMessageBox.question(
@@ -338,9 +368,8 @@ if __name__ == '__main__':
         height = int(window_settings['height'])
         size = eval(window_settings['size'])
         save_path = window_settings['save_path']
-        win = ChatApp(size, save_path)
-        win.setGeometry(x, y, width, height)
+        win = ChatApp(size, save_path,x, y, width, height)
+        
     else:
         win = ChatApp([300, 120], None)
-    win.show()
     app.exec()

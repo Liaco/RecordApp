@@ -132,24 +132,32 @@ class RecordData:
         type5_str = ['大', '小']
         type6_str = ['尾']
         type7_str = ['头']
+        animal_str = []
         for x in type2_str:
             if x in self.text:
+                animal_str.append(x)
                 self.text_type = '2'
+                if '数' in self.text:
+                    return
                 for x in type3_str:
-                    if x in self.text:
+                    if x in self.text or len(animal_str) == 1:
                         self.text_type = '3'
         for x in type4_str:
             if x in self.text:
                 self.text_type = '4'
+                return
         for x in type5_str:
             if x in self.text:
                 self.text_type = '5'
+                return
         for x in type6_str:
             if x in self.text:
                 self.text_type = '6'
+                return
         for x in type7_str:
             if x in self.text:
                 self.text_type = '7'
+                return
 
     def sheet_select(self):  # 选择sheet
         self.sheet_name = '统计'
