@@ -158,7 +158,7 @@ class AutoRecord(QMainWindow):
     def new_menu(self):
         try:
             self.current_date = datetime.datetime.now().strftime('%m%d')
-            self.file_name = f"./Output/Tables/统计表_{self.current_date}2.xlsx"
+            self.file_name = f"./Output/Tables/统计表_{self.current_date}.xlsx"
             self.app = xw.App(visible=True, add_book=False)
             self.workbook = self.app.books.open(
                 os.path.join(self.dist_dir, 'asset', 'templet.xlsx'))
