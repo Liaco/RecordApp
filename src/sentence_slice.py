@@ -43,7 +43,7 @@ def sentence_slice(sentence_list: list):
         pass
     text = "\n".join(sentences_list)
     text = re.sub(r'(\d{3,})', r'\1\n', text)
-    text = re.sub(r'扬帆:', '', text)
+    text = re.sub(r'赚:', '', text)
     text = re.sub('[Oo]', '0', text)
     text = re.sub(r'(各|一|每|个)肖', '包肖', text)
     text = re.sub(r'包肖(\d+)', r'包肖\1\n', text)
@@ -58,7 +58,7 @@ def sentence_slice(sentence_list: list):
     except:
         del_text = '无'
     for s in target_strs:
-        text = re.sub(r'[\n\s]*.*'+s+'.*[\n\s]*', '\n', text)  # 删除所含关键字的文本。
+        text = re.sub(r'[\n\\s]*.*'+s+'.*[\n\\s]*', '\n', text)  # 删除所含关键字的文本。
 
     text = cn2dig(text)
     text = re.sub(r'十', r'10', text)
@@ -87,7 +87,7 @@ def input_text(path):
         path = '../output/input.txt'
     with open(f'{path}', 'r', encoding='utf-8') as f:
         text = f.read()
-        text = re.sub(r'扬帆:', r'', text)
+        text = re.sub(r'赚:', r'', text)
         sentences_list = text.split('\n')
     return sentences_list
 
